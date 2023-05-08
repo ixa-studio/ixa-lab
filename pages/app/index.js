@@ -1,11 +1,13 @@
 import { Button, Label, Textarea } from 'flowbite-react';
 import { Inter } from 'next/font/google';
+import Image from 'next/image';
 import { useCallback, useState } from 'react';
 
 const inter = Inter({ subsets: ['latin'] });
 
 export default function Home() {
   const [idea, setIdea] = useState({ image: null, prompt_input: '' });
+  const [renderedImage, setRenderedImage] = useState(null);
 
   const handleChange = useCallback(
     (event) => {
@@ -26,20 +28,16 @@ export default function Home() {
       formData.append('image', idea.image);
       formData.append('prompt_input', idea.prompt_input);
 
-      console.log('formData', formData);
-
-      const payload = {
-        image: idea.image,
-        prompt_input: idea.prompt_input,
-      };
-      console.log('payload', payload);
-
       const response = await fetch('/api/hello', {
         method: 'POST',
-        body: payload,
+        body: formData,
       });
       const data = await response.json();
       console.log(data);
+
+      if (data.image) {
+        setRenderedImage(data.image);
+      }
     },
     [idea.image, idea.prompt_input]
   );
@@ -132,10 +130,21 @@ export default function Home() {
               </form>
             </div>
             <div className="hidden lg:mt-0 lg:col-span-5 lg:flex">
-              <img
+              {/*           <img
                 src="https://encrypted-tbn0.gstatic.com/images?q=tbn:ANd9GcQreGuTWE5LNQBWVcaRvV_8XKfw0zAOvnI8m4Wf1qZhUAewecNVcPVDHRFcSntWbDLuy30&usqp=CAU"
                 alt="mockup"
-              />
+              />*/}
+              {renderedImage && (
+                <div className="mt-4">
+                  <h2 className="mb-2">Rendered Image:</h2>
+                  <Image
+                    src={renderedImage}
+                    width={512}
+                    height={512}
+                    alt={'input'}
+                  />
+                </div>
+              )}
             </div>
           </div>
         </section>
