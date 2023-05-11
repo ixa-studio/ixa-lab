@@ -17,9 +17,11 @@ const bufferToBase64 = (buffer: ArrayBuffer) => {
 export default async function (req, res) {
   //const image = fs.readFileSync('./sketch4.png', {encoding: 'base64'});
   // console.log(req.body);
-  const input = req.body.prompt_input;
-  const image = req.body.image;
-
+  const input = await req.body.prompt_input;
+  const image = await req.body.base64;
+  console.log(input);
+  console.log(image);
+  console.log(typeof image);
   const modelParameters = {
     prompt:
       'A photograph taken with a professional camera at f/2.8, 1/100 second shutter speed, ISO 400, with daylight white balance and 5000k color temperature. In the image you can see a modern house made of hyper-realistic glass, and behind it a beautiful sky.',
@@ -28,28 +30,29 @@ export default async function (req, res) {
     num_inference_steps: 20,
     image_data: image,
   };
+  console.log('entra al try');
   try {
     const response = await banana.run(apiKey, modelKey, modelParameters);
     console.log(response);
     //const buffer = await response?.modelOutputs[0].canny_base64;
-    const base64 = response?.modelOutputs[0].image_base64;
+    //const base64 = response?.modelOutputs[0].image_base64;
     //console.log(base64);
     // Make sure to change to base64
-    res.status(200).json({ image: `data:image/png;base64,${base64}` });
-    /*
-        if (response.ok) {
-            const buffer = await response?.modelOutputs[0].canny_base64.arrayBuffer();
-            const base64 = bufferToBase64(buffer);
-            // Make sure to change to base64
-            res.status(200).json({ image: base64 });
-          } else if (response.status === 503) {
-            const json = await response.json();
-            res.status(503).json(json);
-          } else {
-            console.log('error en el response')
-            //const json = await response.clone().json();
-            res.status(response.status).json({ error: response.statusText });
-          }*/
+    //res.status(200).json({ image: `data:image/png;base64,${base64}` });
+
+    if (response.ok) {
+      const buffer = await response?.modelOutputs[0].image_base64.arrayBuffer();
+      const base64 = bufferToBase64(buffer);
+      // Make sure to change to base64
+      res.status(200).json({ image: base64 });
+    } else if (response.status === 503) {
+      const json = await response.json();
+      res.status(503).json(json);
+    } else {
+      console.log('error en el response');
+      //const json = await response.clone().json();
+      res.status(response.status).json({ error: response.statusText });
+    }
   } catch (error) {
     res.status(500).json({ error: error.message });
   }
