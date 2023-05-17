@@ -39,8 +39,6 @@ export default function Home() {
         const file = await toBase64(event.target.files[0]);
         setBase64(file);
       } else setIdea({ ...idea, [event.target.name]: event.target.value });
-
-      console.log('idea', idea);
     },
     [idea]
   );
@@ -80,19 +78,16 @@ export default function Home() {
         setRetry(0);
       }
 
-      const formData = new FormData();
-      formData.append('image', idea.image);
-      formData.append('prompt_input', idea.prompt_input);
-      formData.append('base64', base64);
-
-      console.log('formData', formData);
       const response = await fetch('/api/banana', {
         method: 'POST',
         /*
         headers: {
           'Content-Type': 'image/jpeg',
         },*/
-        body: formData,
+        body: JSON.stringify({
+          prompt_input: idea.prompt_input,
+          base64: base64,
+        }),
       });
 
       const data = await response.json();
