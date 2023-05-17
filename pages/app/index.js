@@ -1,6 +1,5 @@
 import { Button, Label, Textarea } from 'flowbite-react';
 import { Inter } from 'next/font/google';
-import Image from 'next/image';
 import { useCallback, useEffect, useState } from 'react';
 
 const inter = Inter({ subsets: ['latin'] });
@@ -38,7 +37,8 @@ export default function Home() {
         setIdea({ ...idea, [event.target.name]: event.target.files[0] });
         const file = await toBase64(event.target.files[0]);
         setBase64(file);
-      } else setIdea({ ...idea, [event.target.name]: event.target.value });
+      } else
+        setIdea({ ...idea, [event.target.name]: event.target.value.trim() });
     },
     [idea]
   );
@@ -233,12 +233,7 @@ export default function Home() {
               {renderedImage && (
                 <div className="mt-4">
                   <h2 className="mb-2">Rendered Image:</h2>
-                  <Image
-                    src={renderedImage}
-                    width={512}
-                    height={512}
-                    alt={'input'}
-                  />
+                  <img src={renderedImage} className="w-full" alt={'input'} />
                 </div>
               )}
             </div>

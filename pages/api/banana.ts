@@ -36,11 +36,9 @@ export default async function (req, res) {
   console.log(input);
 
   const image = img.replace(/^data:image\/(png|jpeg|jpg);base64,/, '');
-  console.log(image);
-  console.log(typeof image);
+
   const modelParameters = {
-    prompt:
-      'A photograph taken with a professional camera at f/2.8, 1/100 second shutter speed, ISO 400, with daylight white balance and 5000k color temperature. In the image you can see a modern house made of hyper-realistic glass, and behind it a beautiful sky.',
+    prompt: input,
     negative_prompt:
       'monochrome, lowres, bad anatomy, worst quality, low quality',
     num_inference_steps: 20,
@@ -48,8 +46,6 @@ export default async function (req, res) {
   };
   try {
     if (image) {
-      console.log('entra al try');
-
       const response = await banana.run(apiKey, modelKey, modelParameters);
       //console.log(response);
       //const buffer = await response?.modelOutputs[0].canny_base64;
