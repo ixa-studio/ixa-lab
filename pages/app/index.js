@@ -40,9 +40,7 @@ export default function Home() {
       } else
         setIdea({
           ...idea,
-          [event.target.name]: event.target.value
-            ?.replace(/[\r\n]+/g, ' ')
-            .trim(),
+          [event.target.name]: event.target.value.trim(),
         });
     },
     [idea]
