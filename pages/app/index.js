@@ -38,10 +38,7 @@ export default function Home() {
         const file = await toBase64(event.target.files[0]);
         setBase64(file);
       } else
-        setIdea({
-          ...idea,
-          [event.target.name]: event.target.value.trim(),
-        });
+        setIdea({ ...idea, [event.target.name]: event.target.value.trim() });
     },
     [idea]
   );
