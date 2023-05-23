@@ -1,22 +1,44 @@
 import { Button, Label, Textarea } from 'flowbite-react';
 import { Inter } from 'next/font/google';
-import Image from 'next/image';
-import { useCallback, useState } from 'react';
+import { useCallback, useEffect, useState } from 'react';
 
 const inter = Inter({ subsets: ['latin'] });
 
 export default function Home() {
+  const maxRetries = 20;
   const [idea, setIdea] = useState({ image: null, prompt_input: '' });
   const [renderedImage, setRenderedImage] = useState(null);
+  const [base64, setBase64] = useState(null);
+  const [retry, setRetry] = useState(0);
+  // Number of retries left
+  const [retryCount, setRetryCount] = useState(maxRetries);
+  const [isGenerating, setIsGenerating] = useState(false);
+
+  const toBase64 = (file) => {
+    return new Promise((resolve, reject) => {
+      const fileReader = new FileReader();
+
+      fileReader.readAsDataURL(file);
+
+      fileReader.onload = () => {
+        resolve(fileReader.result);
+      };
+
+      fileReader.onerror = (error) => {
+        reject(error);
+      };
+    });
+  };
 
   const handleChange = useCallback(
-    (event) => {
+    async (event) => {
       console.log('event.target.name', event.target.name);
       if (event.target.name === 'image') {
         setIdea({ ...idea, [event.target.name]: event.target.files[0] });
-      } else setIdea({ ...idea, [event.target.name]: event.target.value });
-
-      console.log('idea', idea);
+        const file = await toBase64(event.target.files[0]);
+        setBase64(file);
+      } else
+        setIdea({ ...idea, [event.target.name]: event.target.value.trim() });
     },
     [idea]
   );
@@ -24,23 +46,97 @@ export default function Home() {
   const handleSubmit = useCallback(
     async (event) => {
       event.preventDefault();
-      const formData = new FormData();
-      formData.append('image', idea.image);
-      formData.append('prompt_input', idea.prompt_input);
 
-      const response = await fetch('/api/hello', {
+      if (!idea.image) {
+        alert('Please upload an image');
+        return;
+      }
+
+      if (!idea.prompt_input) {
+        alert('Please write a prompt');
+        return;
+      }
+
+      console.log('Generating...');
+
+      // Add this check to make sure there is no double click
+      if (isGenerating && retry === 0) return;
+
+      // Set loading has started
+      setIsGenerating(true);
+
+      // If this is a retry request, take away retryCount
+      if (retry > 0) {
+        setRetryCount((prevState) => {
+          if (prevState === 0) {
+            return 0;
+          } else {
+            return prevState - 1;
+          }
+        });
+
+        setRetry(0);
+      }
+
+      const response = await fetch('/api/banana', {
         method: 'POST',
-        body: formData,
+        /*
+        headers: {
+          'Content-Type': 'image/jpeg',
+        },*/
+        body: JSON.stringify({
+          prompt_input: idea.prompt_input,
+          base64: base64,
+        }),
       });
+
       const data = await response.json();
       console.log(data);
 
+      if (response.status === 503) {
+        // Set the estimated_time property in state
+        setRetry(data.estimated_time);
+        return;
+      }
+
+      if (!response.ok) {
+        console.log(`Error: ${data.error}`);
+        setIsGenerating(false);
+
+        return;
+      }
+
       if (data.image) {
         setRenderedImage(data.image);
+        console.log(data.image);
       }
     },
     [idea.image, idea.prompt_input]
   );
+
+  useEffect(() => {
+    const runRetry = async () => {
+      if (retryCount === 0) {
+        console.log(
+          `Model still loading after ${maxRetries} retries. Try request again in 5 minutes.`
+        );
+        setRetryCount(maxRetries);
+        return;
+      }
+
+      console.log(`Trying again in ${retry} seconds.`);
+
+      await sleep(retry * 1000);
+
+      await generateAction();
+    };
+
+    if (retry === 0) {
+      return;
+    }
+
+    runRetry();
+  }, [retry]);
 
   const { image } = idea;
 
@@ -137,12 +233,7 @@ export default function Home() {
               {renderedImage && (
                 <div className="mt-4">
                   <h2 className="mb-2">Rendered Image:</h2>
-                  <Image
-                    src={renderedImage}
-                    width={512}
-                    height={512}
-                    alt={'input'}
-                  />
+                  <img src={renderedImage} className="w-full" alt={'input'} />
                 </div>
               )}
             </div>
