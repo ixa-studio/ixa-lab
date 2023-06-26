@@ -110,6 +110,7 @@ export default function Home() {
         setRenderedImage(data.image);
         console.log(data.image);
         setIsGenerating(false);
+
       }
     },
     [idea.image, idea.prompt_input]

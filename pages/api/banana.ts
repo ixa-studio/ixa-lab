@@ -1,4 +1,3 @@
-//import * as banana from "@banana-dev/banana-dev";
 const banana = require('@banana-dev/banana-dev');
 // Enter your Banana API keys in .env.local
 const apiKey = process.env.NEXT_PUBLIC_BANANA;
