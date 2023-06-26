@@ -109,6 +109,8 @@ export default function Home() {
       if (data.image) {
         setRenderedImage(data.image);
         console.log(data.image);
+        setIsGenerating(false);
+
       }
     },
     [idea.image, idea.prompt_input]
@@ -222,7 +224,19 @@ export default function Home() {
                     onChange={handleChange}
                   />
                 </div>
-                <Button type="submit">Crea tu render</Button>
+                {!isGenerating ? (
+                  <Button type="submit">Crea tu render</Button>
+                ) : (
+                  <>
+                    <Button type="submit" disabled="true">
+                      Estamos creando tu render
+                    </Button>
+                    <p className="max-w-2xl mb-6 font-light text-gray-500 lg:mb-8 md:text-lg lg:text-xl dark:text-gray-400">
+                      Estamos creando lo que imaginaste. Esto puede tardar unos
+                      minutos.
+                    </p>
+                  </>
+                )}
               </form>
             </div>
             <div className="hidden lg:mt-0 lg:col-span-5 lg:flex">
